@@ -27,9 +27,6 @@ if __name__ == "__main__":
         logger.compiler_info("Please run the 'setup.sh' script to create the virtual environment")
         exit(1)
 
-    # disable bytecode generation
-    sys.dont_write_bytecode = True
-
     # setup SIGINT handler
     signal.signal(signal.SIGINT, on_sigint)
 
