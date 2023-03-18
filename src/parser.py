@@ -99,7 +99,7 @@ class ContextManager:
                         len(node.name_token.value),
                         f"'{node.name}' defined here (bellow the reference) as normal variable"
                     )
-                    exit(1)
+                    raise SystemExit(1)
                 
                 del self.require_defined_in_future_dict[node.name] # it's defined now
         
@@ -125,7 +125,7 @@ class ContextManager:
                 len(globals_and_locals[node.name].name_token.value),
                 f"'{node.name}' defined here"
             )
-            exit(1)
+            raise SystemExit(1)
 
         for i in range(len(self.stack) - 1, -1, -1):
             if self.stack[i][0] == "func":
@@ -200,7 +200,7 @@ class ContextManager:
                     f"'{name}' is not defined"
                 )
 
-            exit(1)
+            raise SystemExit(1)
 
 ctx_mgr = ContextManager()
 
@@ -1049,7 +1049,7 @@ def parse(file: str, tokens: list[lexer.Token]) -> Program:
         return parse_program()
     except ParserError as e:
         logger.code_error(file, e.token.line, e.token.column, len(e.token.value), e.message)
-        exit(1)
+        raise SystemExit(1)
     except Exception:
         import traceback
         import sys
@@ -1084,4 +1084,4 @@ def parse(file: str, tokens: list[lexer.Token]) -> Program:
 
         logger.compiler_info("Please report this error in the GitHub issue")
 
-        exit(1)
+        raise SystemExit(1)

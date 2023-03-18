@@ -1,5 +1,4 @@
 import re
-import sys
 from typing import Iterable
 
 import defs
@@ -166,6 +165,6 @@ def lex_file(file: str) -> list[Token]:
 
     if syntax_error_count > 0:
         logger.compiler_error(f"{syntax_error_count} lexer error(s) while analyzing '{file}'")
-        sys.exit(1)
+        raise SystemExit(1)
     
     return temp
