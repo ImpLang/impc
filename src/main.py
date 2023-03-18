@@ -9,6 +9,8 @@ import sys
 import signal
 import traceback
 
+import logger # pre-import to enable logging before entering the virtual environment
+
 def on_sigint(signal, frame):
     logger.compiler_info("Received SIGINT, exiting...")
     exit(2)
