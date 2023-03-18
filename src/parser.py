@@ -13,6 +13,7 @@ class ContextManager:
     def __init__(self):
         self.file = None
         self.tokens = []
+        self.token_index = 0
         self.stack = []
         self.globals = {}
         self.require_defined_in_future_dict = {}
@@ -409,7 +410,7 @@ class CallNode:
             # Dumb scanning all the file for the function definition
             # TODO: Make this better
 
-            for t in range(len(ctx_mgr.tokens)):
+            for t in range(ctx_mgr.token_index, len(ctx_mgr.tokens)):
                 if ctx_mgr.tokens[t].value == name and ctx_mgr.tokens[t-1].value == "func":
                     if ctx_mgr.tokens[t+1].kind == "LPAREN":
                         while ctx_mgr.tokens[t+1].kind != "RPAREN":
@@ -468,17 +469,15 @@ class Program:
         return self.__str__()
 
 def parse(file: str, tokens: list[lexer.Token]) -> Program:
-    index = 0
     ctx_mgr.init(file, tokens)
 
     def next_token():
-        nonlocal index
-        index += 1
-        return ctx_mgr.tokens[index - 1]
+        ctx_mgr.token_index += 1
+        return ctx_mgr.tokens[ctx_mgr.token_index - 1]
 
     def peek_token(n=0):
         try:
-            return ctx_mgr.tokens[index + n]
+            return ctx_mgr.tokens[ctx_mgr.token_index + n]
         except IndexError:
             return None
 
@@ -625,8 +624,7 @@ def parse(file: str, tokens: list[lexer.Token]) -> Program:
 
             return IfNode(condition, body, else_body)
 
-        nonlocal index
-        index -= newline_count
+        ctx_mgr.token_index -= newline_count
 
         return IfNode(condition, body)
 
@@ -755,13 +753,16 @@ def parse(file: str, tokens: list[lexer.Token]) -> Program:
             return var_node
 
         try:
-            expect_token("ASSIGN")
+            assign_token = expect_token("ASSIGN")
         except ParserError as e:
             raise ParserError(e.token, f"Expected newline, semicolon or assigment, got {e.message.split('got')[1].strip()}")
         
         next_token()
 
         value = parse_expr()
+
+        if implang_types.get_base_type(var_type.value) != value.value_type:
+            raise ParserError(assign_token, f"Cannot assign value of type {value.value_type} to variable of type {implang_types.get_base_type(var_type.value)}")
 
         var_node = VarNode(name, var_type, name.value, var_type.value, value)
         ctx_mgr.define(var_node)
@@ -784,7 +785,8 @@ def parse(file: str, tokens: list[lexer.Token]) -> Program:
         except ParserError:
             raise ParserError(name, f"Tried to assign to undeclared variable '{name.value}'")
 
-        # TODO: Check if types are compatible
+        if implang_types.get_base_type(orig_type.value) != value.value_type:
+            raise ParserError(assignment_type, f"Cannot assign value of type {value.value_type} to variable of type {implang_types.get_base_type(orig_type.value)}")
 
         if assignment_type.kind == "ASSIGN":
             return AssignmentNode(name.value, value)
@@ -1063,7 +1065,7 @@ def parse(file: str, tokens: list[lexer.Token]) -> Program:
         print(file=sys.stderr)
 
         try:
-            relevant_code_line = tokens[index].line
+            relevant_code_line = tokens[ctx_mgr.token_index].line
         except IndexError:
             relevant_code_line = tokens[-1].line
 
