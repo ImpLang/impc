@@ -12,14 +12,16 @@ class ParserError(Exception):
 class ContextManager:
     def __init__(self):
         self.file = None
+        self.tokens = []
         self.stack = []
         self.globals = {}
         self.require_defined_in_future_dict = {}
         self.level = 0
 
-    def init(self, file: str):
+    def init(self, file: str, tokens: list[lexer.Token]):
         self.__init__() # Reset
         self.file = file
+        self.tokens = tokens
 
     def enter_func(self):
         self.stack.append(("func", {}))
@@ -404,8 +406,38 @@ class CallNode:
         if name in ctx_mgr.get_functions():
             self.value_type = implang_types.get_base_type(ctx_mgr.get_functions()[name].return_type)
         else:
-            self.value_type = None
-        
+            # Dumb scanning all the file for the function definition
+            # TODO: Make this better
+
+            for t in range(len(ctx_mgr.tokens)):
+                if ctx_mgr.tokens[t].value == name and ctx_mgr.tokens[t-1].value == "func":
+                    if ctx_mgr.tokens[t+1].kind == "LPAREN":
+                        while ctx_mgr.tokens[t+1].kind != "RPAREN":
+                            t += 1
+                        else:
+                            t += 1
+                            if ctx_mgr.tokens[t+1].kind == "ARROW":
+                                self.value_type = implang_types.get_base_type(ctx_mgr.tokens[t+2].value)
+                            else:
+                                self.value_type = None
+                        
+                        break
+
+                elif ctx_mgr.tokens[t].value == name and ctx_mgr.tokens[t-1].value == "@import_symbol":
+                    if ctx_mgr.tokens[t+1].kind == "LPAREN":
+                        while ctx_mgr.tokens[t+1].kind != "RPAREN":
+                            t += 1
+                        else:
+                            t += 1
+                            if ctx_mgr.tokens[t+1].kind == "ARROW":
+                                self.value_type = implang_types.get_base_type(ctx_mgr.tokens[t+2].value)
+                            else:
+                                self.value_type = None
+                        
+                        break
+            else:
+                self.value_type = None
+    
     def __str__(self):
         return f"CallNode({self.name}, {self.arguments})"
 
@@ -437,16 +469,16 @@ class Program:
 
 def parse(file: str, tokens: list[lexer.Token]) -> Program:
     index = 0
-    ctx_mgr.init(file)
+    ctx_mgr.init(file, tokens)
 
     def next_token():
         nonlocal index
         index += 1
-        return tokens[index - 1]
+        return ctx_mgr.tokens[index - 1]
 
     def peek_token(n=0):
         try:
-            return tokens[index + n]
+            return ctx_mgr.tokens[index + n]
         except IndexError:
             return None
 
