@@ -1,7 +1,12 @@
 @no_std
 @import_symbol print(str)
 
-# define a function that sums all numbers form 1 to n using recursion
+// COMMENT A
+
+/* COMMENT B
+COMMENT B LINE 2 */
+
+// define a function that sums all numbers form 1 to n using recursion
 func sum_to(n: u64) -> u64 {
     if n == 0 {
         return 0
@@ -33,7 +38,7 @@ func match_number_to_str(n: u64) -> str {
     }
 }
 
-# define a function that converts u64 to str
+// define a function that converts u64 to str
 func u64_to_str(n: u64) -> str {
     if n == 0 {
         return "0"
@@ -47,7 +52,7 @@ func u64_to_str(n: u64) -> str {
     return result
 }
 
-# define main function that prints the sum of all numbers from 1 to 100
+// define main function that prints the sum of all numbers from 1 to 100
 func main(args: str) -> i8 {
     print("The sum of all numbers from 1 to 100 is: ")
     print(u64_to_str(sum_to(100)))

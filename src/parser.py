@@ -802,8 +802,6 @@ def parse(file: str, tokens: list[lexer.Token]) -> Program:
 
         if check_defined:
             ctx_mgr.require_defined_in_future_for_func(name)
-            #if ctx_mgr.get_type(name).value not in  ["func", "@import_symbol"]:
-            #    raise ParserError(name, f"Expected function, got {ctx_mgr.get_type(name)}")
 
         skip_newlines()
 

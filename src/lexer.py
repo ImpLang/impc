@@ -38,6 +38,9 @@ def lex(input_text: str) -> Iterable[Token]:
     input_text = "\n".join([xstrip(line) for line in input_text.split("\n")])
 
     tokens = [
+        ("COMMENT", r"\/\/.*"),
+        ("BLOCK_COMMENT", r"\/\*(.|\n)*?\*\/"),
+
         ("ATTRIBUTE", r"\@[a-zA-z][a-zA-z0-9_]*"),
         ("IDENTIFIER", r"[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*"),
         ("FLOAT", r"([0-9]*)?\.[0-9]+"),
@@ -47,7 +50,6 @@ def lex(input_text: str) -> Iterable[Token]:
 
         ("ARROW", r"\-\>"),
 
-        ("COMMENT", r"\#.*"),
         ("NEWLINE", r"\n"),
         ("WHITESPACE", r"\s+"),
 
@@ -117,7 +119,7 @@ def lex(input_text: str) -> Iterable[Token]:
             kind = match.lastgroup
             value = match.group()
 
-            if kind == "COMMENT":
+            if kind in ["COMMENT", "BLOCK_COMMENT"]:
                 pass
             elif kind == "WHITESPACE":
                 pass
